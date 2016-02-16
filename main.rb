@@ -1,4 +1,5 @@
 require 'bundler'
+require 'open-uri'
 Bundler.require(:default)
 
 include GPX
@@ -93,71 +94,96 @@ class OMD_CURVE < BinData::Record
   uint8 :dataId
 end
 
-FILE_NAME = "ACT_0006"
+STRAVA_ACCESS_TOKEN = "YOUR_STRAVA_ACCESS_TOKEN"
+strava = Strava::Api::V3::Client.new(:access_token => STRAVA_ACCESS_TOKEN, logger: Logger.new("/dev/null"))
 
-puts "Processing #{FILE_NAME}"
+cli = HighLine.new
 
-omh = File.open("#{FILE_NAME}.OMH")
-r  = OMH.read(omh)
+path = cli.ask("OnMove200 path?") { |q| q.default = "/run/media/ylecuyer/ONMOVE-200" }
 
-omd = File.open("#{FILE_NAME}.OMD")
+Dir.chdir("#{path}/DATA")
 
-frames = omd.size/20
+files = Dir["*.OMD"]
 
-puts "File contains #{frames} frames"
+puts "#{files.count} files found #{files}"
 
-progressbar = ProgressBar.create(:title => "Frames", :total => frames)
+files.each do |file|
+  filename = File.basename(file, ".OMD")
 
-t = (Time.new(r.year+2000, r.month, r.day, r.hour, r.minutes, 00) - r.duration).utc
+  puts ""
+  puts "Processing #{filename}"
 
-gpx = GPXFile.new
-track = Track.new(:name => "OnMove200 - #{r.day}/#{r.month}/#{r.year+2000}")
-segment = Segment.new
+  omh = File.open("#{path}/DATA/#{filename}.OMH")
+  r  = OMH.read(omh)
 
-(0..frames-1).each do
+  omd = File.open("#{path}/DATA/#{filename}.OMD")
 
-  omd_type = OMD_Type(omd)
+  frames = omd.size/20
 
-  case omd_type
-  when OMD_GPS_TYPE
-    d = OMD_GPS.read(omd)
-    segment.points <<  TrackPoint.new({lat: d.latitude, lon: d.longitude, time: t+d.stopWatch})
-  when OMD_CURVE_TYPE
-    d = OMD_CURVE.read(omd)
+  puts "File contains #{frames} frames"
+
+  progressbar = ProgressBar.create(:title => "Frames", :total => frames)
+
+  t = (Time.new(r.year+2000, r.month, r.day, r.hour, r.minutes, 00) - r.duration).utc
+
+  gpx = GPXFile.new
+  track = Track.new(:name => "OnMove200 - #{r.day}/#{r.month}/#{r.year+2000}")
+  segment = Segment.new
+
+  (0..frames-1).each do
+
+    omd_type = OMD_Type(omd)
+
+    case omd_type
+    when OMD_GPS_TYPE
+      d = OMD_GPS.read(omd)
+      segment.points <<  TrackPoint.new({lat: d.latitude, lon: d.longitude, time: t+d.stopWatch})
+    when OMD_CURVE_TYPE
+      d = OMD_CURVE.read(omd)
+    end
+
+    progressbar.increment
   end
 
-  progressbar.increment
+  track.segments << segment
+  gpx.tracks << track
+  gpx.write("strava.gpx")
+
+  options = {}
+  options[:activity_type] = 'ride'
+  options[:data_type] = 'gpx'
+
+  options[:file] =File.new("strava.gpx")
+
+  status = strava.upload_an_activity(options)
+  upload_id = status['id']
+
+  puts status['status']
+
+  begin
+    sleep 1
+    status = strava.retrieve_upload_status(upload_id)
+    puts status['status']
+  end while status['status'] !~ /ready/
+
+  File.delete("strava.gpx")
 end
 
-track.segments << segment
-gpx.tracks << track
-gpx.write("strava.gpx")
+puts ""
 
+cli.choose do |menu|
+  menu.prompt = "Clean rides?"
+  menu.choice(:yes) do
+    files.each do |file|
+      filename = File.basename(file, ".OMD")
+      File.delete("#{path}/DATA/#{filename}.OMH")
+      File.delete("#{path}/DATA/#{filename}.OMD")
+    end
+  end
+  menu.choices(:no)
+end
 
-STRAVA_ACCESS_TOKEN = "YOUR_STRAVA_ACCESS_TOKEN"
-
-strava = Strava::Api::V3::Client.new(:access_token => STRAVA_ACCESS_TOKEN)
-
-options = {}
-options[:activity_type] = 'ride'
-options[:data_type] = 'gpx'
-
-
-options[:file] =File.new("strava.gpx")
-
-status = strava.upload_an_activity(options)
-upload_id = status['id']
-
-puts status[:status]
-puts status
-
-begin
-sleep 1
-status = strava.retrieve_upload_status(upload_id)
-puts status[:status]
-puts status
-end while status[:status] !~ /ready/
-
-File.delete("strava.gpx")
-
-
+puts "Downloading epo.7..."
+download = open('https://s3-eu-west-1.amazonaws.com/ephemeris/epo.7')
+IO.copy_stream(download, "#{path}/epo.7")
+puts "Done"
