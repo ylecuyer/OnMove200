@@ -94,12 +94,17 @@ class OMD_CURVE < BinData::Record
   uint8 :dataId
 end
 
-STRAVA_ACCESS_TOKEN = "YOUR_STRAVA_ACCESS_TOKEN"
+unless File.exist?("token")
+  puts "First run init.rb"
+  exit
+end
+
+STRAVA_ACCESS_TOKEN = File.open("token", "rb").read
 strava = Strava::Api::V3::Client.new(:access_token => STRAVA_ACCESS_TOKEN, logger: Logger.new("/dev/null"))
 
 cli = HighLine.new
 
-path = cli.ask("OnMove200 path?") { |q| q.default = "/run/media/ylecuyer/ONMOVE-200" }
+path = cli.ask("OnMove200 path?") { |q| q.default = "/media/ylecuyer/ONMOVE-200" }
 
 Dir.chdir("#{path}/DATA")
 
