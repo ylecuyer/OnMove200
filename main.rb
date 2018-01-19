@@ -188,7 +188,13 @@ cli.choose do |menu|
   menu.choices(:no)
 end
 
-puts "Downloading epo.7..."
-download = open('https://s3-eu-west-1.amazonaws.com/ephemeris/epo.7')
-IO.copy_stream(download, "#{path}/epo.7")
-puts "Done"
+cli.choose do |menu|
+  menu.prompt = "Update epo.7?"
+  menu.choice(:yes) do
+    puts "Downloading epo.7..."
+    download = open('https://s3-eu-west-1.amazonaws.com/ephemeris/epo.7')
+    IO.copy_stream(download, "#{path}/epo.7")
+    puts "Done"
+  end
+  menu.choices(:no)
+end
