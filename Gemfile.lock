@@ -50,10 +50,11 @@ DEPENDENCIES
   bindata
   gpx
   highline
+  httparty
   launchy
   ruby-progressbar
   sinatra
   strava-api-v3!
 
 BUNDLED WITH
-   1.12.3
+   1.16.1

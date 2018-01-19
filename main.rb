@@ -1,6 +1,6 @@
 require 'bundler'
 require 'open-uri'
-Bundler.require(:default)
+Bundler.require(:main)
 
 include GPX
 

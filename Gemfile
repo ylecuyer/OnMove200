@@ -1,9 +1,16 @@
 source 'https://rubygems.org'
 
-gem 'bindata'
-gem 'ruby-progressbar'
-gem 'gpx'
-gem 'strava-api-v3', github: 'jaredholdcroft/strava-api-v3'
-gem 'highline'
-gem 'launchy'
-gem 'sinatra'
+group :main do
+  gem 'bindata'
+  gem 'ruby-progressbar'
+  gem 'gpx'
+  gem 'strava-api-v3', github: 'jaredholdcroft/strava-api-v3'
+  gem 'highline'
+end
+
+
+group :init do
+  gem 'httparty'
+  gem 'launchy'
+  gem 'sinatra'
+end

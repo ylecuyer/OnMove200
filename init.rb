@@ -1,5 +1,5 @@
 require 'bundler'
-Bundler.require(:default)
+Bundler.require(:init)
 
 CLIENT_SECRET="YOUR_STRAVA_CLIENT_SECRET"
 CLIENT_ID="YOUR_CLIENT_ID"
