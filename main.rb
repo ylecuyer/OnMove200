@@ -157,6 +157,7 @@ files.each do |file|
   options = {}
   options[:activity_type] = 'ride'
   options[:data_type] = 'gpx'
+  options[:commute] = ENV['COMMUTE'] || false
 
   options[:file] =File.new("strava.gpx")
 
