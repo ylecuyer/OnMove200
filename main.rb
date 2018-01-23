@@ -189,6 +189,13 @@ cli.choose do |menu|
   menu.choices(:no)
 end
 
+modification_time = File.mtime("#{path}/epo.7")
+days_ago = ((Time.now - modification_time)/86400).to_i
+days_ago_msg = case days_ago when 0 then "today" when 1 then "yesterday" else "#{days_ago} days ago" end
+
+puts "epo.7 last update: #{days_ago_msg} (#{modification_time})"
+puts ">> YOU SHOULD UPDATE <<" if days_ago > 7
+
 cli.choose do |menu|
   menu.prompt = "Update epo.7?"
   menu.choice(:yes) do
