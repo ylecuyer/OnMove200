@@ -189,20 +189,25 @@ cli.choose do |menu|
   menu.choices(:no)
 end
 
-modification_time = File.mtime("#{path}/epo.7")
-days_ago = ((Time.now - modification_time)/86400).to_i
-days_ago_msg = case days_ago when 0 then "today" when 1 then "yesterday" else "#{days_ago} days ago" end
+if File.exist?("#{path}/epo.7")
+  modification_time = File.mtime("#{path}/epo.7")
+  days_ago = ((Time.now - modification_time)/86400).to_i
+  days_ago_msg = case days_ago when 0 then "today" when 1 then "yesterday" else "#{days_ago} days ago" end
 
-puts "epo.7 last update: #{days_ago_msg} (#{modification_time})"
-puts ">> YOU SHOULD UPDATE <<" if days_ago > 7
-
-cli.choose do |menu|
-  menu.prompt = "Update epo.7?"
-  menu.choice(:yes) do
-    puts "Downloading epo.7..."
-    download = open('https://s3-eu-west-1.amazonaws.com/ephemeris/epo.7')
-    IO.copy_stream(download, "#{path}/epo.7")
-    puts "Done"
-  end
-  menu.choices(:no)
+  puts "epo.7 last update: #{days_ago_msg} (#{modification_time})"
+  puts ">> YOU SHOULD UPDATE <<" if days_ago > 7
+else
+  puts "epo.7 not present"
+  puts ">> YOU SHOULD UPDATE <<"
 end
+
+  cli.choose do |menu|
+    menu.prompt = "Update epo.7?"
+    menu.choice(:yes) do
+      puts "Downloading epo.7..."
+      download = open('https://s3-eu-west-1.amazonaws.com/ephemeris/epo.7')
+      IO.copy_stream(download, "#{path}/epo.7")
+      puts "Done"
+    end
+    menu.choices(:no)
+  end
