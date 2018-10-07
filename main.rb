@@ -161,7 +161,15 @@ files.each do |file|
 
   options[:file] =File.new("strava.gpx")
 
-  status = strava.upload_an_activity(options)
+  status = begin
+    strava.upload_an_activity(options)
+  rescue Strava::Api::V3::ClientError => e
+    if e.message =~ /duplicate of activity/
+      puts "SKIPING because : #{e.message}"
+      next
+    end
+    raise e
+  end
   upload_id = status['id']
 
   puts status['status']
