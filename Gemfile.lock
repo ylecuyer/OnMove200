@@ -22,7 +22,7 @@ GEM
     httparty (0.13.7)
       json (~> 1.8)
       multi_xml (>= 0.5.2)
-    json (1.8.3)
+    json (1.8.6)
     launchy (2.4.3)
       addressable (~> 2.3)
     mimemagic (0.3.1)
@@ -57,4 +57,4 @@ DEPENDENCIES
   strava-api-v3!
 
 BUNDLED WITH
-   1.16.1
+   1.16.3
