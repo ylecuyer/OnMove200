@@ -14,7 +14,7 @@ if CLIENT_ID == 'YOUR_CLIENT_ID'
 	exit
 end
 
-Launchy.open("https://www.strava.com/oauth/authorize?client_id=10029&response_type=code&redirect_uri=http://localhost:4567/token_exchange&scope=write&approval_prompt=force");
+Launchy.open("https://www.strava.com/oauth/authorize?client_id=#{CLIENT_ID}&response_type=code&redirect_uri=http://localhost:4567/token_exchange&scope=activity:write&approval_prompt=force");
 
 get '/token_exchange' do
   code = params[:code]

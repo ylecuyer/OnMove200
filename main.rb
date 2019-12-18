@@ -100,7 +100,7 @@ unless File.exist?("token")
 end
 
 STRAVA_ACCESS_TOKEN = File.open("token", "rb").read
-strava = Strava::Api::V3::Client.new(:access_token => STRAVA_ACCESS_TOKEN, logger: Logger.new("/dev/null"))
+strava = Strava::Api::Client.new(access_token: STRAVA_ACCESS_TOKEN)
 
 cli = HighLine.new
 
@@ -158,27 +158,30 @@ files.each do |file|
   options[:activity_type] = 'ride'
   options[:data_type] = 'gpx'
   options[:commute] = ENV['COMMUTE'] || false
+  options[:external_id] = file
 
-  options[:file] =File.new("strava.gpx")
+  options[:file] = Faraday::UploadIO.new('strava.gpx', 'application/gpx+xml')
 
-  status = begin
-    strava.upload_an_activity(options)
-  rescue Strava::Api::V3::ClientError => e
-    if e.message =~ /duplicate of activity/
-      puts "SKIPING because : #{e.message}"
-      next
-    end
-    raise e
-  end
-  upload_id = status['id']
+  upload = begin
+             strava.create_upload(options)
+           rescue Strava::Errors::Fault => e
+             if e.error =~ /duplicate of activity/
+               puts "SKIPING because:"
+               puts e.status
+               puts e.error
+               next
+             end
 
-  puts status['status']
+             raise e
+           end
+
+  puts upload.status
 
   begin
     sleep 1
-    status = strava.retrieve_upload_status(upload_id)
-    puts status['status']
-  end while status['status'] !~ /ready/
+    res = strava.upload(upload.id)
+    puts res.status
+  end while res.status !~ /ready/
 
   File.delete("strava.gpx")
 end

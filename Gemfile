@@ -4,7 +4,7 @@ group :main do
   gem 'bindata'
   gem 'ruby-progressbar'
   gem 'gpx'
-  gem 'strava-api-v3', github: 'jaredholdcroft/strava-api-v3'
+  gem 'strava-ruby-client', github: 'ylecuyer/strava-ruby-client'
   gem 'highline'
 end
 
