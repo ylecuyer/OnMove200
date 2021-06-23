@@ -19,7 +19,7 @@ GEM
       zeitwerk (~> 2.2, >= 2.2.2)
     addressable (2.7.0)
       public_suffix (>= 2.0.2, < 5.0)
-    bindata (2.4.4)
+    bindata (2.4.10)
     concurrent-ruby (1.1.6)
     faraday (0.17.1)
       multipart-post (>= 1.2, < 3)
